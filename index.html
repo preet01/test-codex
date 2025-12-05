@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake II</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #22c55e;
+      --accent-dark: #16a34a;
+      --grid: #1f2937;
+      --text: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.08), transparent 35%),
+        radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.08), transparent 35%),
+        var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      padding: 20px;
+      width: min(960px, 100%);
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 320px;
+    }
+
+    @media (max-width: 900px) {
+      .card { grid-template-columns: 1fr; }
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 2.4vw, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.12);
+      color: #bbf7d0;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .game-wrap {
+      position: relative;
+      background: #0b1222;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: var(--panel);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.55);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .overlay.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .overlay h2 { margin: 0 0 10px; }
+
+    .controls {
+      background: #0b1222;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      height: fit-content;
+    }
+
+    .scores {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .score-box {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      flex: 1;
+    }
+
+    .score-label { color: #9ca3af; font-size: 0.95rem; }
+    .score-value { font-size: 1.6rem; font-weight: 700; }
+
+    button {
+      background: var(--accent);
+      color: #052e16;
+      font-weight: 700;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.12s ease;
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25);
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); box-shadow: none; }
+
+    ul { margin: 0; padding-left: 18px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="layout">
+      <header>
+        <div>
+          <h1>Snake II</h1>
+          <div class="badge" aria-label="Game tagline">Classic climb-the-board arcade</div>
+        </div>
+        <button id="restart">Restart</button>
+      </header>
+
+      <div class="game-wrap">
+        <canvas id="game" width="540" height="540" aria-label="Snake game board"></canvas>
+        <div class="overlay" id="overlay">
+          <div>
+            <h2>Game Over</h2>
+            <p>Press Enter or tap Restart to play again.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="controls">
+      <div class="scores">
+        <div class="score-box" aria-live="polite">
+          <div class="score-label">Score</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-box" aria-live="polite">
+          <div class="score-label">Best</div>
+          <div class="score-value" id="high-score">0</div>
+        </div>
+      </div>
+
+      <div>
+        <h3>How to play</h3>
+        <ul>
+          <li>Use the arrow keys or WASD to steer the snake.</li>
+          <li>Eat neon dots to grow longer and earn points.</li>
+          <li>Avoid hitting the walls or your own tail.</li>
+          <li>Press Enter or click Restart to reset at any time.</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
