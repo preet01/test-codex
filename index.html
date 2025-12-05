@@ -6,8 +6,9 @@
   <title>Snake II</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #111827;
+      --bg: #0b1020;
+      --panel: rgba(17, 24, 39, 0.75);
+      --panel-strong: #0f172a;
       --accent: #22c55e;
       --accent-dark: #16a34a;
       --grid: #1f2937;
@@ -20,8 +21,9 @@
       margin: 0;
       font-family: "Inter", system-ui, -apple-system, sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.08), transparent 35%),
-        radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.08), transparent 35%),
+      background: radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.12), transparent 35%),
+        radial-gradient(circle at 82% 30%, rgba(59, 130, 246, 0.12), transparent 35%),
+        radial-gradient(circle at 45% 85%, rgba(244, 114, 182, 0.08), transparent 40%),
         var(--bg);
       min-height: 100vh;
       display: flex;
@@ -31,20 +33,19 @@
     }
 
     .card {
-      background: var(--panel);
-      border: 1px solid #1f2937;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(17, 24, 39, 0.8));
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
       padding: 20px;
-      width: min(960px, 100%);
+      width: min(1120px, 100%);
       display: grid;
-      gap: 16px;
-      grid-template-columns: 1fr 320px;
+      gap: 18px;
+      grid-template-columns: 1fr 340px;
+      backdrop-filter: blur(10px);
     }
 
-    @media (max-width: 900px) {
-      .card { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 960px) { .card { grid-template-columns: 1fr; } }
 
     header {
       display: flex;
@@ -56,8 +57,19 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(1.8rem, 2.4vw, 2.2rem);
+      font-size: clamp(1.9rem, 3vw, 2.5rem);
       letter-spacing: -0.02em;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .title-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #34d399 0%, #15803d 70%, #052e16 100%);
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
     }
 
     .badge {
@@ -71,35 +83,28 @@
       font-weight: 600;
       font-size: 0.9rem;
       border: 1px solid rgba(34, 197, 94, 0.35);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
 
     .game-wrap {
       position: relative;
-      background: #0b1222;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
+      background: linear-gradient(135deg, #0a1225, #0e162c);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
       overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      background: var(--panel);
-    }
+    canvas { display: block; width: 100%; height: auto; background: transparent; }
 
     .overlay {
       position: absolute;
       inset: 0;
       display: grid;
       place-items: center;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.65);
       color: white;
       text-align: center;
       padding: 20px;
@@ -108,56 +113,91 @@
       transition: opacity 0.25s ease;
     }
 
-    .overlay.visible {
-      visibility: visible;
-      opacity: 1;
-    }
-
+    .overlay.visible { visibility: visible; opacity: 1; }
     .overlay h2 { margin: 0 0 10px; }
 
-    .controls {
-      background: #0b1222;
-      border: 1px solid #1f2937;
-      border-radius: 12px;
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-      height: fit-content;
+    .overlay .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 600;
     }
 
-    .scores {
-      display: flex;
-      gap: 12px;
-      align-items: center;
+    .controls {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      height: fit-content;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
+
+    .scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
 
     .score-box {
       padding: 12px 14px;
       border-radius: 12px;
-      background: #111827;
-      border: 1px solid #1f2937;
-      flex: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .score-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(130deg, rgba(34, 197, 94, 0.08), transparent 65%);
+      opacity: 0.6;
+      pointer-events: none;
     }
 
     .score-label { color: #9ca3af; font-size: 0.95rem; }
-    .score-value { font-size: 1.6rem; font-weight: 700; }
+    .score-value { font-size: 1.6rem; font-weight: 800; }
+    .score-note { color: #a5b4fc; font-weight: 700; font-size: 0.95rem; }
+
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
     button {
-      background: var(--accent);
+      background: linear-gradient(140deg, var(--accent), #a3e635);
       color: #052e16;
-      font-weight: 700;
+      font-weight: 800;
       border: none;
       padding: 12px 16px;
       border-radius: 10px;
       cursor: pointer;
-      transition: transform 0.08s ease, box-shadow 0.12s ease;
-      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25);
+      transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
     }
 
-    button:hover { transform: translateY(-1px); }
+    button:hover { transform: translateY(-1px); filter: brightness(1.05); }
     button:active { transform: translateY(0); box-shadow: none; }
 
     ul { margin: 0; padding-left: 18px; color: #cbd5e1; }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .pill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+
+    .pill { background: rgba(255, 255, 255, 0.05); border-radius: 999px; padding: 8px 10px; font-weight: 700; color: #d1d5db; text-align: center; border: 1px solid rgba(255, 255, 255, 0.04); }
+
+    .touch-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 220px; margin: 0 auto; }
+    .touch-pad button { padding: 12px; border-radius: 12px; background: rgba(34, 197, 94, 0.1); color: #bbf7d0; box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.35); }
+    .touch-pad .spacer { visibility: hidden; }
+
+    @media (max-width: 520px) { .touch-pad { width: 100%; } }
   </style>
 </head>
 <body>
@@ -165,18 +205,29 @@
     <div class="layout">
       <header>
         <div>
-          <h1>Snake II</h1>
+          <h1><span class="title-dot"></span>Snake II</h1>
           <div class="badge" aria-label="Game tagline">Classic climb-the-board arcade</div>
         </div>
-        <button id="restart">Restart</button>
+        <div class="button-row">
+          <button id="play">Play</button>
+          <button id="restart">Reset run</button>
+        </div>
       </header>
 
       <div class="game-wrap">
         <canvas id="game" width="540" height="540" aria-label="Snake game board"></canvas>
+        <div class="overlay" id="start-overlay">
+          <div>
+            <h2>Ready to hunt?</h2>
+            <p>Press <strong>Play</strong> or hit <strong>Space / Enter</strong> to begin.</p>
+            <div class="pill">Eat the neon orbs, dodge your tail, climb the leaderboard.</div>
+          </div>
+        </div>
         <div class="overlay" id="overlay">
           <div>
             <h2>Game Over</h2>
-            <p>Press Enter or tap Restart to play again.</p>
+            <p>Press Enter, Space, or tap Reset to try again.</p>
+            <div class="pill">Pro-tip: cutting close earns you speed and style.</div>
           </div>
         </div>
       </div>
@@ -192,16 +243,43 @@
           <div class="score-label">Best</div>
           <div class="score-value" id="high-score">0</div>
         </div>
+        <div class="score-box" aria-live="polite">
+          <div class="score-label">Speed</div>
+          <div class="score-value" id="speed">1.00x</div>
+          <div class="score-note">Speeds up every 4 snacks</div>
+        </div>
       </div>
 
-      <div>
+      <div class="info-box">
         <h3>How to play</h3>
         <ul>
           <li>Use the arrow keys or WASD to steer the snake.</li>
           <li>Eat neon dots to grow longer and earn points.</li>
           <li>Avoid hitting the walls or your own tail.</li>
-          <li>Press Enter or click Restart to reset at any time.</li>
+          <li>Press Enter/Space or click Reset to restart at any time.</li>
         </ul>
+      </div>
+
+      <div class="info-box">
+        <h3>Quick controls</h3>
+        <div class="pill-grid">
+          <div class="pill">Arrow keys / WASD</div>
+          <div class="pill">Space to play / pause</div>
+          <div class="pill">Enter to restart</div>
+          <div class="pill">Tap pads on mobile</div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>Touch-friendly pad</h3>
+        <div class="touch-pad" aria-label="On-screen directional pad">
+          <div class="spacer"></div>
+          <button data-dir="ArrowUp" aria-label="Move up">▲</button>
+          <div class="spacer"></div>
+          <button data-dir="ArrowLeft" aria-label="Move left">◀</button>
+          <button data-dir="ArrowDown" aria-label="Move down">▼</button>
+          <button data-dir="ArrowRight" aria-label="Move right">▶</button>
+        </div>
       </div>
     </aside>
   </div>
