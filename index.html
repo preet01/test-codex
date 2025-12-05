@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake II</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #0f172a;
+      --accent: #22c55e;
+      --accent-2: #a855f7;
+      --grid: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.08), transparent 35%),
+        radial-gradient(circle at 80% 30%, rgba(168, 85, 247, 0.09), transparent 38%),
+        var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      width: min(1040px, 100%);
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 320px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .card::before,
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 12px;
+      background: linear-gradient(120deg, rgba(34, 197, 94, 0.08), rgba(168, 85, 247, 0.05));
+      filter: blur(18px);
+      opacity: 0.5;
+      z-index: -1;
+    }
+
+    .card::after {
+      inset: 0;
+      background: radial-gradient(circle at 16% 15%, rgba(34, 197, 94, 0.07), transparent 35%),
+        radial-gradient(circle at 80% 65%, rgba(168, 85, 247, 0.07), transparent 40%);
+      filter: blur(30px);
+    }
+
+    @media (max-width: 900px) {
+      .card { grid-template-columns: 1fr; }
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 2.4vw, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .subtext { color: var(--muted); margin: 4px 0 0; }
+
+    .badge {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.12);
+      color: #bbf7d0;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .game-wrap {
+      position: relative;
+      background: #0b1222;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: radial-gradient(circle at 35% 35%, rgba(34, 197, 94, 0.07), transparent 40%),
+        radial-gradient(circle at 70% 70%, rgba(168, 85, 247, 0.07), transparent 42%),
+        #0a0f1e;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.65);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .overlay h2 { margin: 0 0 6px; font-size: 1.8rem; }
+    .overlay p { margin: 0; color: #d1fae5; }
+
+    .controls {
+      background: #0b1222;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      height: fit-content;
+    }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .score-box {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0f172a, #0b1222);
+      border: 1px solid #1f2937;
+      display: grid;
+      gap: 4px;
+    }
+
+    .score-label { color: #9ca3af; font-size: 0.95rem; }
+    .score-value { font-size: 1.6rem; font-weight: 700; }
+    .pill { color: #c084fc; font-weight: 600; }
+
+    button {
+      background: linear-gradient(120deg, var(--accent), #31c48d);
+      color: #052e16;
+      font-weight: 700;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.12s ease;
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25);
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); box-shadow: none; }
+
+    ul { margin: 0; padding-left: 18px; color: #cbd5e1; }
+    h3 { margin: 0; }
+
+    .legend {
+      display: grid;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .touch-controls {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .touch-row {
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .touch-button {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.08s ease;
+    }
+
+    .touch-button:hover { background: rgba(255, 255, 255, 0.08); }
+    .touch-button:active { transform: translateY(1px); }
+
+    .mobile-hint { color: var(--muted); font-size: 0.92rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="layout">
+      <header>
+        <div>
+          <h1>Snake II</h1>
+          <p class="subtext">Guide the neon serpent, chase glowing bites, and survive the maze.</p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <span class="badge" aria-label="Game tagline">Arcade survival</span>
+          <button id="restart">Restart</button>
+        </div>
+      </header>
+
+      <div class="game-wrap">
+        <canvas id="game" width="540" height="540" aria-label="Snake game board"></canvas>
+        <div class="overlay" id="overlay">
+          <div>
+            <h2 id="overlay-title">Ready?</h2>
+            <p id="overlay-text">Press Space, Enter, or tap to begin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="controls">
+      <div class="scores" role="status" aria-live="polite">
+        <div class="score-box">
+          <div class="score-label">Score</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">Best</div>
+          <div class="score-value" id="high-score">0</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">Length</div>
+          <div class="score-value" id="length">3</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">Speed</div>
+          <div class="score-value"><span id="speed">1.0x</span> <span class="pill">ramping</span></div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <h3>How to play</h3>
+        <ul>
+          <li>Use the arrow keys or WASD to steer. Tap the arrows below on touch.</li>
+          <li>Eat neon orbs to grow longer and earn points.</li>
+          <li>Speed ramps as you score. Crashing into walls or your tail ends the run.</li>
+          <li>Press Space to pause/resume. Enter or Restart to reset anytime.</li>
+        </ul>
+      </div>
+
+      <div class="touch-controls" aria-hidden="false">
+        <div class="touch-row">
+          <div></div>
+          <button class="touch-button" data-dir="up">▲</button>
+          <div></div>
+        </div>
+        <div class="touch-row">
+          <button class="touch-button" data-dir="left">◀</button>
+          <button class="touch-button" data-dir="down">▼</button>
+          <button class="touch-button" data-dir="right">▶</button>
+        </div>
+        <div class="mobile-hint">Tap a direction to start if you're on mobile.</div>
+      </div>
+    </aside>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
